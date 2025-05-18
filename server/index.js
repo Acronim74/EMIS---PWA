@@ -210,37 +210,36 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
 app.get('/progress', auth, async (req, res) => {
   const userId = req.user.id;
 
-  // Получаем все записи ответов пользователя
-  const { data: allAnswers, error } = await supabase
+  // Получаем form_id из ответов пользователя
+  const { data: answeredForms, error: answeredError } = await supabase
     .from('answers')
     .select('form_id')
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .group('form_id');
 
-  if (error) {
-    console.error('Ошибка при получении прогресса:', error);
+  if (answeredError) {
     return res.status(500).json({ error: 'Ошибка при получении прогресса' });
   }
 
-  // Собираем уникальные form_id
-  const uniqueFormIds = [...new Set(allAnswers.map(entry => entry.form_id))];
+  const formIds = answeredForms.map(a => a.form_id);
 
-  if (uniqueFormIds.length === 0) {
+  if (formIds.length === 0) {
     return res.json({ progress: [] });
   }
 
-  // Получаем заголовки анкет
-  const { data: forms, error: formsError } = await supabase
+  // Загружаем данные анкет
+  const { data: forms, error: formError } = await supabase
     .from('forms')
     .select('id, title, description')
-    .in('id', uniqueFormIds);
+    .in('id', formIds);
 
-  if (formsError) {
-    console.error('Ошибка при получении анкет:', formsError);
+  if (formError) {
     return res.status(500).json({ error: 'Ошибка при загрузке анкет' });
   }
 
   res.json({ progress: forms });
 });
+
 
 app.get('/my-answers/:form_id', auth, async (req, res) => {
   const formId = req.params.form_id;
@@ -402,7 +401,7 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
 
   const userId = req.user.id;
 
-  // Проверка: уже прошёл анкету?
+  // Проверка — уже проходил?
   const { data: existing } = await supabase
     .from('answers')
     .select('id')
@@ -414,7 +413,6 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
     return res.status(400).json({ error: 'Вы уже прошли эту анкету' });
   }
 
-  // Формируем массив для вставки
   const answersWithUser = answers.map(answer => ({
     ...answer,
     user_id: userId,
@@ -431,6 +429,7 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
 
   res.json({ message: 'Ответы сохранены', data });
 });
+
 
 
 // Запуск сервера

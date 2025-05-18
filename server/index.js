@@ -210,24 +210,24 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
 app.get('/progress', auth, async (req, res) => {
   const userId = req.user.id;
 
-  // Получаем form_id из ответов пользователя
-  const { data: answeredForms, error: answeredError } = await supabase
+  // Получаем все form_id, по которым есть ответы
+  const { data: rawAnswers, error: answerError } = await supabase
     .from('answers')
     .select('form_id')
-    .eq('user_id', userId)
-    .group('form_id');
+    .eq('user_id', userId);
 
-  if (answeredError) {
+  if (answerError) {
     return res.status(500).json({ error: 'Ошибка при получении прогресса' });
   }
 
-  const formIds = answeredForms.map(a => a.form_id);
+  // Удаляем дубликаты form_id
+  const formIds = [...new Set(rawAnswers.map(a => a.form_id))];
 
   if (formIds.length === 0) {
     return res.json({ progress: [] });
   }
 
-  // Загружаем данные анкет
+  // Загружаем анкеты по этим ID
   const { data: forms, error: formError } = await supabase
     .from('forms')
     .select('id, title, description')

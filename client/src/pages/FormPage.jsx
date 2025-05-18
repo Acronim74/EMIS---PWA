@@ -33,8 +33,9 @@ export default function FormPage() {
     try {
       const formattedAnswers = Object.entries(answers).map(([questionId, value]) => ({
         question_id: questionId,
-        value: Array.isArray(value) ? JSON.stringify(value) : value
+        answer: Array.isArray(value) ? JSON.stringify(value) : value
       }));
+      
 
       await submitAnswers(id, formattedAnswers);
       setSuccess('Ответы успешно отправлены!');

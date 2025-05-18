@@ -392,6 +392,45 @@ app.get('/admin/users-progress', auth, adminOnly, async (req, res) => {
   res.json({ progress: result });
 });
 
+app.post('/forms/:id/submit', auth, async (req, res) => {
+  const formId = req.params.id;
+  const { answers } = req.body;
+
+  if (!answers || !Array.isArray(answers)) {
+    return res.status(400).json({ error: 'Неверный формат данных' });
+  }
+
+  const userId = req.user.id;
+
+  // Проверка: уже прошёл анкету?
+  const { data: existing } = await supabase
+    .from('answers')
+    .select('id')
+    .eq('form_id', formId)
+    .eq('user_id', userId)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return res.status(400).json({ error: 'Вы уже прошли эту анкету' });
+  }
+
+  // Формируем массив для вставки
+  const answersWithUser = answers.map(answer => ({
+    ...answer,
+    user_id: userId,
+    form_id: formId
+  }));
+
+  const { data, error } = await supabase
+    .from('answers')
+    .insert(answersWithUser);
+
+  if (error) {
+    return res.status(500).json({ error: 'Ошибка при сохранении ответов' });
+  }
+
+  res.json({ message: 'Ответы сохранены', data });
+});
 
 
 // Запуск сервера

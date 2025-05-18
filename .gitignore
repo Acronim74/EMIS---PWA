@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+.env
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PWA service-worker cache (если есть)
+*.sw.js
+
+# Supabase config (если будет)
+.supabase/

@@ -1,36 +1,28 @@
-const API_BASE = 'http://localhost:5000';
+const API_URL = 'http://localhost:5000';
 
 export async function fetchForms() {
   const token = localStorage.getItem('token');
-
-  const response = await fetch(`${API_BASE}/forms`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+  const res = await fetch(`${API_URL}/forms`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Ошибка загрузки форм');
-
-  return data.forms;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка загрузки анкет');
+  return data;
 }
 
 export async function fetchForm(id) {
   const token = localStorage.getItem('token');
-  const response = await fetch(`${API_BASE}/forms/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+  const res = await fetch(`${API_URL}/forms/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Ошибка загрузки анкеты');
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка загрузки анкеты');
   return data;
 }
 
 export async function submitAnswers(formId, answers) {
   const token = localStorage.getItem('token');
-  const response = await fetch(`${API_BASE}/forms/${formId}/submit`, {
+  const res = await fetch(`${API_URL}/forms/${formId}/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,21 +30,27 @@ export async function submitAnswers(formId, answers) {
     },
     body: JSON.stringify({ answers })
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Ошибка отправки');
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка отправки ответов');
   return data;
 }
+
 export async function fetchProgress() {
   const token = localStorage.getItem('token');
-  const response = await fetch(`http://localhost:5000/progress`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+  const res = await fetch(`${API_URL}/progress`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Ошибка загрузки прогресса');
-  return data.progress;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка загрузки прогресса');
+  return data;
 }
 
+export async function fetchMyAnswers(formId) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_URL}/my-answers/${formId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка загрузки ответов');
+  return data;
+}

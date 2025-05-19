@@ -10,7 +10,7 @@ export default function ProgressPage() {
       try {
         const data = await fetchProgress();
         console.log('Текущий прогресс:', data); // ← Покажет весь ответ
-        setCompleted(data.progress || []);
+        setCompleted(data || []);
       } catch (err) {
         setError(err.message);
       }

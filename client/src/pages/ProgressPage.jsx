@@ -9,7 +9,7 @@ export default function ProgressPage() {
     const load = async () => {
       try {
         const data = await fetchProgress();
-        console.log('Текущий прогресс:', data.progress); // Для отладки
+        console.log('Текущий прогресс:', data); // ← Покажет весь ответ
         setCompleted(data.progress || []);
       } catch (err) {
         setError(err.message);

@@ -54,3 +54,17 @@ export async function fetchMyAnswers(formId) {
   if (!res.ok) throw new Error(data.error || 'Ошибка загрузки ответов');
   return data;
 }
+export async function createForm({ title, description, order }) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`http://localhost:5000/admin/forms`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ title, description, order })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка создания анкеты');
+  return data;
+}

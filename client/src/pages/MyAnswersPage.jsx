@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { fetchForm, fetchMyAnswers } from '../api/forms';
 
 export default function MyAnswersPage() {
-  const { id } = useParams(); // form_id из URL
+  const { id } = useParams(); // form_id
   const [form, setForm] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [error, setError] = useState('');
@@ -22,27 +22,9 @@ export default function MyAnswersPage() {
     };
     load();
   }, [id]);
-  
 
-  if (error) {
-    return (
-      <div className="p-4 text-red-600">
-        Ошибка загрузки: {error}
-      </div>
-    );
-  }
-
-  if (!form) {
-    return (
-      <div className="p-4">Загрузка анкеты...</div>
-    );
-  }
-
-  // Сопоставление вопросов и ответов
-  const answerMap = answers.reduce((acc, a) => {
-    acc[a.question_id] = a.answer;
-    return acc;
-  }, {});
+  if (error) return <div className="p-4 text-red-600">Ошибка загрузки: {error}</div>;
+  if (!form) return <div className="p-4">Загрузка анкеты...</div>;
 
   return (
     <div className="max-w-3xl mx-auto mt-8 p-4">
@@ -50,22 +32,21 @@ export default function MyAnswersPage() {
         Ваши ответы на анкету: {form.title}
       </h1>
 
-      <ul className="space-y-6">
-        {form.questions?.map((q, idx) => (
-          <li key={q.id} className="border p-4 rounded shadow bg-white">
-            <p className="font-semibold mb-2">{idx + 1}. {q.question}</p>
-            <div className="text-gray-800">
-              {formatAnswer(answerMap[q.id])}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {answers.length === 0 ? (
+        <p className="text-gray-500">Вы ещё не заполняли эту анкету.</p>
+      ) : (
+        <ul className="space-y-6">
+          {answers.map((a, idx) => (
+            <li key={idx} className="border p-4 rounded shadow bg-white">
+              <p className="font-semibold mb-2">{idx + 1}. {a.question}</p>
+              <div className="text-gray-800">{formatAnswer(a.answer)}</div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="mt-8">
-        <Link
-          to="/progress"
-          className="text-blue-600 hover:underline"
-        >
+        <Link to="/progress" className="text-blue-600 hover:underline">
           ← Вернуться к списку анкет
         </Link>
       </div>
@@ -73,18 +54,13 @@ export default function MyAnswersPage() {
   );
 }
 
-// Универсальный форматтер
 function formatAnswer(raw) {
   if (!raw) return <span className="text-gray-400">Нет ответа</span>;
-
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed.join(', ');
-    }
+    if (Array.isArray(parsed)) return parsed.join(', ');
     return parsed.toString();
   } catch {
     return raw;
   }
 }
-  

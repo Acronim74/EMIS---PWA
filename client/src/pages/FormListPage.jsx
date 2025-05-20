@@ -11,7 +11,8 @@ export default function FormListPage() {
       try {
         const data = await fetchForms();
         console.log('Загруженные анкеты:', data);
-        setForms(Array.isArray(data) ? data : []); // ← важно: безопасно
+        const list = data.forms || data || [];
+        setForms(Array.isArray(list) ? list : []);// ← важно: безопасно
       } catch (err) {
         setError(err.message);
         setForms([]);

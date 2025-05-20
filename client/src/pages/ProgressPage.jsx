@@ -9,14 +9,15 @@ export default function ProgressPage() {
     const load = async () => {
       try {
         const data = await fetchProgress();
-        console.log('Текущий прогресс:', data); // ← Покажет весь ответ
-        setCompleted(data || []);
+        console.log('Прогресс:', data);
+        setCompleted(Array.isArray(data.progress) ? data.progress : []);
       } catch (err) {
         setError(err.message);
       }
     };
     load();
   }, []);
+  
 
   return (
     <div className="max-w-2xl mx-auto mt-8 p-4">

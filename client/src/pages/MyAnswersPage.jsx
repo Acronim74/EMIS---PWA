@@ -12,16 +12,17 @@ export default function MyAnswersPage() {
     const load = async () => {
       try {
         const formData = await fetchForm(id);
-        setForm(formData.form); // анкета
+        setForm(formData.form);
         const answerData = await fetchMyAnswers(id);
         console.log('Ответы:', answerData);
-        setAnswers(answerData || []); // [{ question_id, answer }]
+        setAnswers(Array.isArray(answerData.answers) ? answerData.answers : []);
       } catch (err) {
         setError(err.message);
       }
     };
     load();
   }, [id]);
+  
 
   if (error) {
     return (

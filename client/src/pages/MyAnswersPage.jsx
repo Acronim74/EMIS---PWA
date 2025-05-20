@@ -14,6 +14,7 @@ export default function MyAnswersPage() {
         const formData = await fetchForm(id);
         setForm(formData.form); // анкета
         const answerData = await fetchMyAnswers(id);
+        console.log('Ответы:', answerData);
         setAnswers(answerData || []); // [{ question_id, answer }]
       } catch (err) {
         setError(err.message);

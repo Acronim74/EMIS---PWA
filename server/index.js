@@ -303,11 +303,15 @@ app.post('/admin/forms', auth, adminOnly, async (req, res) => {
 
 app.post('/admin/forms/:id/questions', auth, adminOnly, async (req, res) => {
   const formId = req.params.id;
-  const questions = req.body.questions;
-
-  if (!Array.isArray(questions) || questions.length === 0) {
-    return res.status(400).json({ error: 'Нет вопросов для добавления' });
+  const input = req.body;
+  const questions = Array.isArray(input.questions)
+    ? input.questions
+    : [input];
+  
+  if (!questions.length || !questions[0].question) {
+    return res.status(400).json({ error: 'Нет валидных вопросов' });
   }
+  
 
   const toInsert = questions.map((q, i) => ({
     form_id: formId,

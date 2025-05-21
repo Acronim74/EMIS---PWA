@@ -76,10 +76,11 @@ export async function createQuestion(formId, questionData) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify(questionData)
+    body: JSON.stringify({ questions: [questionData] }) // отправляем в массиве
   });
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Ошибка при создании вопроса');
   return data;
 }
+

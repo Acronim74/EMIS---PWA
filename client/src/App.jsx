@@ -6,6 +6,7 @@ import FormPage from './pages/FormPage';
 import ProgressPage from './pages/ProgressPage';
 import MyAnswersPage from './pages/MyAnswersPage';
 import AdminPage from './pages/AdminPage';
+import AddQuestionPage from './pages/AddQuestionPage';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/my-answers/:id" element={<MyAnswersPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/add-question" element={<AddQuestionPage />} />
       </Routes>
     </Router>
   );

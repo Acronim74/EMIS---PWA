@@ -68,3 +68,18 @@ export async function createForm({ title, description, order }) {
   if (!res.ok) throw new Error(data.error || 'Ошибка создания анкеты');
   return data;
 }
+export async function createQuestion(formId, questionData) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`http://localhost:5000/admin/forms/${formId}/questions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(questionData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка при создании вопроса');
+  return data;
+}

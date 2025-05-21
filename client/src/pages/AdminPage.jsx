@@ -11,6 +11,14 @@ export default function AdminPage() {
   });
   const [successMessage, setSuccessMessage] = useState('');
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+if (user.role !== 'admin') {
+  return (
+    <div className="p-4 text-red-600">
+      Доступ запрещён: только для администратора
+    </div>
+  );
+}
   useEffect(() => {
     const load = async () => {
       try {
@@ -95,10 +103,17 @@ export default function AdminPage() {
       <h2 className="text-xl font-semibold mb-4">Существующие анкеты</h2>
       <ul className="space-y-3">
         {forms.map(form => (
-          <li key={form.id} className="border p-3 rounded bg-white shadow">
-            <strong>{form.title}</strong> (ID: {form.id})
-            <p className="text-sm text-gray-600 whitespace-pre-line">{form.description}</p>
-          </li>
+         <li key={form.id} className="border p-3 rounded bg-white shadow">
+         <strong>{form.title}</strong> (ID: {form.id})
+         <p className="text-sm text-gray-600 whitespace-pre-line mb-2">{form.description}</p>
+         <a
+           href={`/forms/${form.id}`}
+           className="inline-block text-blue-600 hover:underline"
+         >
+           Перейти к анкете →
+         </a>
+       </li>
+       
         ))}
       </ul>
     </div>

@@ -434,7 +434,242 @@ app.post('/forms/:id/submit', auth, async (req, res) => {
   res.json({ message: 'Ответы сохранены', data });
 });
 
+app.get('/incomplete/:form_id', auth, async (req, res) => {
+  const { form_id } = req.params;
+  const user_id = req.user.id;
 
+  try {
+    const { data, error } = await supabase
+      .from('incomplete_answers')
+      .select('answers')
+      .eq('user_id', user_id)
+      .eq('form_id', form_id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // если не просто "ничего не найдено"
+    res.json({ answers: data?.answers || {} });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка при получении черновика' });
+  }
+});
+
+app.post('/incomplete/:form_id', auth, async (req, res) => {
+  const { form_id } = req.params;
+  const user_id = req.user.id;
+  const answers = req.body.answers;
+
+  try {
+    const { data, error } = await supabase
+      .from('incomplete_answers')
+      .upsert([{ user_id, form_id, answers }], { onConflict: ['user_id', 'form_id'] });
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка при сохранении черновика' });
+  }
+});
+
+app.delete('/incomplete/:form_id', auth, async (req, res) => {
+  const { form_id } = req.params;
+  const user_id = req.user.id;
+
+  try {
+    const { error } = await supabase
+      .from('incomplete_answers')
+      .delete()
+      .eq('user_id', user_id)
+      .eq('form_id', form_id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка при удалении черновика' });
+  }
+});
+
+// получить все незавершённые анкеты пользователя
+app.get('/incomplete', auth, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const { data, error } = await supabase
+      .from('incomplete_answers')
+      .select('form_id')
+      .eq('user_id', user_id);
+
+    if (error) throw error;
+    res.json({ forms: data || [] });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка при получении незавершённых анкет' });
+  }
+});
+app.post('/admin/groups', auth, adminOnly, async (req, res) => {
+  const { title, description } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('form_groups')
+      .insert([{ title, description }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ group: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка создания группы' });
+  }
+});
+app.get('/admin/groups', auth, adminOnly, async (req, res) => {
+  try {
+    const { data: groups, error } = await supabase
+      .from('form_groups')
+      .select('id, title, description');
+
+    if (error) throw error;
+
+    const { data: counts, error: countErr } = await supabase
+      .from('forms')
+      .select('group_id, count(*)', { count: 'exact' })
+      .group('group_id');
+
+    if (countErr) throw countErr;
+
+    const countsMap = {};
+    counts.forEach(c => {
+      countsMap[c.group_id] = c.count;
+    });
+
+    const result = groups.map(g => ({
+      ...g,
+      form_count: countsMap[g.id] || 0
+    }));
+
+    res.json({ groups: result });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения групп' });
+  }
+});
+app.post('/admin/groups/:group_id/forms', auth, adminOnly, async (req, res) => {
+  const { group_id } = req.params;
+  const { title, short_desc, full_desc, goal, reward, order } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('forms')
+      .insert([{
+        group_id,
+        title,
+        short_desc,
+        full_desc,
+        goal,
+        reward,
+        order: order ?? 0
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ form: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка создания анкеты' });
+  }
+});
+app.get('/forms', auth, async (req, res) => {
+  const { group_id } = req.query;
+
+  try {
+    let query = supabase
+      .from('forms')
+      .select('id, title, short_desc, full_desc, goal, reward, group_id, "order"')
+      .order('order', { ascending: true });
+
+    if (group_id) {
+      query = query.eq('group_id', group_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    res.json({ forms: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения анкет' });
+  }
+});
+app.post('/progress/:form_id', auth, async (req, res) => {
+  const { form_id } = req.params;
+  const { last_question_index, completed = false } = req.body;
+  const user_id = req.user.id;
+
+  try {
+    const { error } = await supabase
+      .from('form_progress')
+      .upsert([{ user_id, form_id, last_question_index, completed }], {
+        onConflict: ['user_id', 'form_id']
+      });
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка обновления прогресса' });
+  }
+});
+app.get('/progress/:form_id', auth, async (req, res) => {
+  const { form_id } = req.params;
+  const user_id = req.user.id;
+
+  try {
+    const { data, error } = await supabase
+      .from('form_progress')
+      .select('last_question_index, completed')
+      .eq('user_id', user_id)
+      .eq('form_id', form_id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    res.json(data || { last_question_index: 0, completed: false });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения прогресса' });
+  }
+});
+app.get('/progress/group/:group_id', auth, async (req, res) => {
+  const { group_id } = req.params;
+  const user_id = req.user.id;
+
+  try {
+    // Получаем все анкеты в группе
+    const { data: forms, error: formsErr } = await supabase
+      .from('forms')
+      .select('id')
+      .eq('group_id', group_id);
+
+    if (formsErr) throw formsErr;
+    const formIds = forms.map(f => f.id);
+
+    if (formIds.length === 0) {
+      return res.json({ total: 0, completed: 0, in_progress: [] });
+    }
+
+    // Получаем прогресс пользователя по этим анкетам
+    const { data: progress, error: progErr } = await supabase
+      .from('form_progress')
+      .select('form_id, last_question_index, completed')
+      .eq('user_id', user_id)
+      .in('form_id', formIds);
+
+    if (progErr) throw progErr;
+
+    const completedCount = progress.filter(p => p.completed).length;
+
+    res.json({
+      total: formIds.length,
+      completed: completedCount,
+      in_progress: progress
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения прогресса по группе' });
+  }
+});
 
 // Запуск сервера
 app.listen(PORT, () => {

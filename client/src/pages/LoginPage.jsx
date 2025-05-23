@@ -16,7 +16,7 @@ export default function LoginPage() {
       const { token, user } = await loginUser(email, password);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      navigate('/forms');
+      navigate('/home');
     } catch (err) {
       setError(err.message);
     }

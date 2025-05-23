@@ -1,25 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import FormListPage from './pages/FormListPage';
-import FormPage from './pages/FormPage';
-import ProgressPage from './pages/ProgressPage';
-import MyAnswersPage from './pages/MyAnswersPage';
-import AdminPage from './pages/AdminPage';
-import AddQuestionPage from './pages/AddQuestionPage';
+// client/src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// страницы
+import LoginPage        from './pages/LoginPage';
+import RegisterPage     from './pages/RegisterPage';
+import HomePage         from './pages/HomePage';      // ← новое имя файла
+import FormListPage     from './pages/FormListPage';
+import FormPage         from './pages/FormPage';
+import ProgressPage     from './pages/ProgressPage';
+import MyAnswersPage    from './pages/MyAnswersPage';
+import AdminPage        from './pages/AdminPage';
+import AddQuestionPage  from './pages/AddQuestionPage';
+
+// компонент-охранник
+import PrivateRoute     from './components/PrivateRoute';
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        {/* общедоступные маршруты */}
+        <Route path="/login"    element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forms" element={<FormListPage />} />
-        <Route path="/forms/:id" element={<FormPage />} />
-        <Route path="/progress" element={<ProgressPage />} />
-        <Route path="/my-answers/:id" element={<MyAnswersPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/add-question" element={<AddQuestionPage />} />
+
+        {/* редирект с корня */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
+
+        {/* защищённые маршруты (роль не проверяем) */}
+        <Route path="/home"            element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/forms"           element={<PrivateRoute><FormListPage /></PrivateRoute>} />
+        <Route path="/forms/:id"       element={<PrivateRoute><FormPage /></PrivateRoute>} />
+        <Route path="/progress"        element={<PrivateRoute><ProgressPage /></PrivateRoute>} />
+        <Route path="/my-answers/:id"  element={<PrivateRoute><MyAnswersPage /></PrivateRoute>} />
+
+        {/* защищённые маршруты администратора */}
+        <Route path="/admin"                    element={<PrivateRoute requiredRole="admin"><AdminPage /></PrivateRoute>} />
+        <Route path="/admin/add-question"       element={<PrivateRoute requiredRole="admin"><AddQuestionPage /></PrivateRoute>} />
+
+        {/* запасной маршрут */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Router>
   );

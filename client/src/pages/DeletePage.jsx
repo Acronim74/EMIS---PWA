@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function DeletePage() {
@@ -11,10 +11,9 @@ export default function DeletePage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-
   const token = localStorage.getItem('token');
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
       const res = await fetch('http://localhost:5000/admin/groups', {
         headers: { Authorization: `Bearer ${token}` }
@@ -25,7 +24,7 @@ export default function DeletePage() {
     } catch (err) {
       setError('Ошибка загрузки групп: ' + err.message);
     }
-  };
+  }, [token]);
 
   const fetchForms = async (groupId) => {
     try {
@@ -109,7 +108,7 @@ export default function DeletePage() {
 
   useEffect(() => {
     fetchGroups();
-  }, []);
+  }, [fetchGroups]);
 
   return (
     <div className="max-w-3xl mx-auto mt-8 p-4">

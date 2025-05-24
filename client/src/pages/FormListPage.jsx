@@ -16,13 +16,22 @@ export default function FormListPage() {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        const json = await res.json();
+
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          throw new Error('Сервер вернул некорректный JSON:\n' + text);
+        }
+
         if (res.ok) {
           setGroups(json.groups || []);
         } else {
           throw new Error(json.error || 'Ошибка загрузки групп');
         }
       } catch (err) {
+        console.error('Ошибка при загрузке групп:', err);
         setError(err.message);
       }
     };
@@ -43,13 +52,22 @@ export default function FormListPage() {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        const json = await res.json();
+
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          throw new Error('Сервер вернул некорректный JSON:\n' + text);
+        }
+
         if (res.ok) {
           setFormsByGroup(prev => ({ ...prev, [groupId]: json.forms }));
         } else {
           throw new Error(json.error || 'Ошибка загрузки анкет');
         }
       } catch (err) {
+        console.error('Ошибка при загрузке анкет:', err);
         setError(err.message);
         return;
       }

@@ -670,6 +670,79 @@ app.get('/progress/group/:group_id', auth, async (req, res) => {
     res.status(500).json({ error: 'Ошибка получения прогресса по группе' });
   }
 });
+app.put('/admin/groups/:id', auth, adminOnly, async (req, res) => {
+  const { id } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    const { error } = await supabase
+      .from('form_groups')
+      .update({ title, description })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка обновления группы' });
+  }
+});
+app.put('/admin/forms/:id', auth, adminOnly, async (req, res) => {
+  const { id } = req.params;
+  const { title, short_desc, full_desc, goal, reward } = req.body;
+
+  try {
+    const { error } = await supabase
+      .from('forms')
+      .update({
+        title,
+        short_desc,
+        full_desc,
+        goal,
+        reward
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка обновления анкеты' });
+  }
+});
+app.delete('/admin/groups/:id', auth, adminOnly, async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from('form_groups')
+    .delete()
+    .eq('id', id);
+
+  if (error) return res.status(500).json({ error: 'Ошибка при удалении группы' });
+  res.json({ success: true });
+});
+app.delete('/admin/forms/:id', auth, adminOnly, async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from('forms')
+    .delete()
+    .eq('id', id);
+
+  if (error) return res.status(500).json({ error: 'Ошибка при удалении анкеты' });
+  res.json({ success: true });
+});
+app.delete('/admin/questions/:id', auth, adminOnly, async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from('questions')
+    .delete()
+    .eq('id', id);
+
+  if (error) return res.status(500).json({ error: 'Ошибка при удалении вопроса' });
+  res.json({ success: true });
+});
 
 // Запуск сервера
 app.listen(PORT, () => {

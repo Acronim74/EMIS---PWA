@@ -16,7 +16,12 @@ export default function LoginPage() {
       const { token, user } = await loginUser(email, password);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      navigate('/home');
+      if (user.role === 'admin') {
+      navigate('/admin');
+      } else {
+        navigate('/home');
+      }
+
     } catch (err) {
       setError(err.message);
     }
